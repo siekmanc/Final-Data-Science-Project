@@ -1,0 +1,15 @@
+---
+title: "Project Proposal"
+Names: "Caroline & Eli"
+format: html
+editor: visual
+---
+
+## Data Set 1:
+
+```{r Importing the data set}
+
+climate_data <- data <- read.delim("/Users/siekmanc/Downloads/ICPSR_36368 2/DS0001/36368-0001-Data.tsv")
+write.csv(climate_data, "path_to_output_file.csv", row.names = FALSE)
+View(climate_data)
+```
