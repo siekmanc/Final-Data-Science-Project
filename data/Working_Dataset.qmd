@@ -13,6 +13,7 @@ library(polite)
 library(rvest)
 library(tibble)
 library(tidyverse)
+library(dplyr)
 ```
 
 ```{r}
@@ -28,4 +29,11 @@ View(econ_clim_data)
 working_dataset <- econ_clim_data %>% select("INTL_ECONOMICIMPACT", "STATE_VEHICLES_V1","STATE_VEHICLES_V2","CARBONTAX_COST10PCT","CARBONTAX_COST15DOL","CARBONTAX_COST50DOL", "STATE_RPS_ECONOMY","GW_BELIEF","GW_CONCERN","BELIEVER_IMMEDIACY","GOVT_EFFECTIVENESS","GOVT_FED","STATE_NEIGHBORSACT","GASTAX_GOVT","FFTAX_GOVT","CAPTRADE_GOVT_V1","GOVT_EFFECTIVENESS_V2","GOVT_EFFECTIVENESS","STATE_RPS_V1","STATE_RPS_V2","STATE_RPS_V2_COST100","STATE_RPS_V3","STATE_RPS_V3_COST25","STATE_RPS_V3_COST50","DEMOG_EDU","DEMOG_POLVIEWS","DEMOG_RELIG")
 
 View(working_dataset)
+```
+
+```{r}
+#Summary Table for our dataset
+summary_table <- summary(working_dataset)
+View(summary_table)
+#Not sure if this is the absolute best looking method but it does provide a complete summary
 ```
