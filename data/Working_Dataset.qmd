@@ -26,7 +26,7 @@ View(econ_clim_data)
 ```{r}
 #Creating a dataframe with only our necessary variables
 
-working_dataset <- econ_clim_data %>% select("INTL_ECONOMICIMPACT", "STATE_VEHICLES_V1","STATE_VEHICLES_V2","CARBONTAX_COST10PCT","CARBONTAX_COST15DOL","CARBONTAX_COST50DOL", "STATE_RPS_ECONOMY","GW_BELIEF","GW_CONCERN","BELIEVER_IMMEDIACY","GOVT_EFFECTIVENESS","GOVT_FED","STATE_NEIGHBORSACT","GASTAX_GOVT","FFTAX_GOVT","CAPTRADE_GOVT_V1","GOVT_EFFECTIVENESS_V2","GOVT_EFFECTIVENESS","STATE_RPS_V1","STATE_RPS_V2","STATE_RPS_V2_COST100","STATE_RPS_V3","STATE_RPS_V3_COST25","STATE_RPS_V3_COST50","DEMOG_EDU","DEMOG_POLVIEWS","DEMOG_RELIG")
+working_dataset <- econ_clim_data %>% select("WAVE_NUMBER", "INTL_ECONOMICIMPACT", "STATE_VEHICLES_V1","STATE_VEHICLES_V2","CARBONTAX_COST10PCT","CARBONTAX_COST15DOL","CARBONTAX_COST50DOL", "STATE_RPS_ECONOMY","GW_BELIEF","GW_CONCERN","BELIEVER_IMMEDIACY","GOVT_EFFECTIVENESS","GOVT_FED","STATE_NEIGHBORSACT","GASTAX_GOVT","FFTAX_GOVT","CAPTRADE_GOVT_V1","GOVT_EFFECTIVENESS_V2","GOVT_EFFECTIVENESS","STATE_RPS_V1","STATE_RPS_V2","STATE_RPS_V2_COST100","STATE_RPS_V3","STATE_RPS_V3_COST25","STATE_RPS_V3_COST50","DEMOG_EDU","DEMOG_POLVIEWS","DEMOG_RELIG")
 
 View(working_dataset)
 ```
@@ -51,4 +51,21 @@ eco_by_polview <- eco_by_polview %>%
 polviews_state_eco <- eco_by_polview %>% ggplot(aes(x=POLVIEWS, y=Count, fill = STATE_ECO)) + geom_bar(stat = "identity", position = "dodge") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 polviews_state_eco
+```
+
+```{r clean dates}
+working_dataset <- working_dataset %>% mutate(WAVE_NUMBER = (sub('.*(?=.....$)', '', WAVE_NUMBER, perl=T)) %>%
+                                                paste("/01/01", sep="")
+                                              )
+```
+
+```{r date and international economic impact}
+date_intl_graph <- working_dataset[working_dataset$STATE_RPS_ECONOMY %in% c("(1) Strongly agree", "(2) Somewhat agree", "(3) Somewhat disagree", "(4) Strongly disagree"),]
+
+
+date_intl_eco <- date_intl_graph %>% ggplot(aes(x=WAVE_NUMBER, y=STATE_RPS_ECONOMY, fill = STATE_RPS_ECONOMY)) + 
+  geom_col(position = "stack") + 
+  #scale_x_date() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+date_intl_eco
 ```
