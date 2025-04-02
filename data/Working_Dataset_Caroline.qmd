@@ -20,7 +20,7 @@ library(tidyr)
 
 ```{r}
 #Loading the dataset
-load("/Users/siekmanc/Downloads/ICPSR_36368 2/DS0001/36368-0001-Data.rda")
+load("36368-0001-Data.rda")
 econ_clim_data <- as.data.frame(da36368.0001)
 View(econ_clim_data)
 ```
