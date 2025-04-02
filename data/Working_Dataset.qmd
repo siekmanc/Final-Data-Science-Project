@@ -7,7 +7,7 @@ editor: visual
 
 ## Data Set 1:
 
-```{r}
+```{r install packages}
 #Install Packages
 library(polite)
 library(rvest)
@@ -16,7 +16,7 @@ library(tidyverse)
 library(dplyr)
 ```
 
-```{r}
+```{r load data}
 #Loading the dataset
 load("36368-0001-Data.rda")
 econ_clim_data <- as.data.frame(da36368.0001)
@@ -36,4 +36,19 @@ View(working_dataset)
 summary_table <- summary(working_dataset)
 View(summary_table)
 #Not sure if this is the absolute best looking method but it does provide a complete summary
+```
+
+```{r demog_polviews -> state_rps_economy graph}
+eco_by_polview <- as.data.frame(table(working_dataset$DEMOG_POLVIEWS, working_dataset$STATE_RPS_ECONOMY))
+colnames(eco_by_polview) <- c("POLVIEWS", "STATE_ECO", "Count")
+
+eco_by_polview <- eco_by_polview %>%
+  spread(key = STATE_ECO, value = Count, fill = 0)
+
+eco_by_polview <- eco_by_polview %>%
+  pivot_longer(cols = c("(1) Strongly agree", "(2) Somewhat agree", "(3) Somewhat disagree", "(4) Strongly disagree"), names_to = "STATE_ECO", values_to = "Count")
+
+polviews_state_eco <- eco_by_polview %>% ggplot(aes(x=POLVIEWS, y=Count, fill = STATE_ECO)) + geom_bar(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+polviews_state_eco
 ```
