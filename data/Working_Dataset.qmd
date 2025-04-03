@@ -49,7 +49,9 @@ eco_by_polview <- eco_by_polview %>%
   pivot_longer(cols = c("(1) Strongly agree", "(2) Somewhat agree", "(3) Somewhat disagree", "(4) Strongly disagree"), names_to = "STATE_ECO", values_to = "Count")
 
 polviews_state_eco <- eco_by_polview %>% ggplot(aes(x=POLVIEWS, y=Count, fill = STATE_ECO)) + geom_bar(stat = "identity", position = "dodge") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+        axis.title.y = element_text(size = 7))+
+  labs(x="Political Views", y="Count of Answers to \"renewable energies grow economies\"")
 polviews_state_eco
 ```
 
@@ -65,7 +67,8 @@ date_intl_graph <- working_dataset[working_dataset$STATE_RPS_ECONOMY %in% c("(1)
 
 date_intl_eco <- date_intl_graph %>% ggplot(aes(x=WAVE_NUMBER, y=STATE_RPS_ECONOMY, fill = STATE_RPS_ECONOMY)) + 
   geom_col(position = "stack") + 
-  #scale_x_date() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+        axis.text.y=element_blank()) +
+  labs(x="year", y="renewable energies grow economies")
 date_intl_eco
 ```
