@@ -1,0 +1,245 @@
+---
+title: "EDA"
+author: "Caroline & Eli"
+format: html
+---
+
+# Exploring the Data
+
+## What are your outcome variables?
+
+* STATE_RPS_ECONOMY
+  + State governments will boost their economies by requiring greater use of renewable energy
+* INTL_ECONOMICIMPACT
+  + Overall, the U.S. economy would benefit from leaving the international climate treaty designed to reduce greenhouse gas emissions
+* CARBONTAX
+  + Support for a tax on carbon production
+  
+## How well does it measure the outcome you are interested in?
+
+All three outcome variables in our analysis have a strong correlation with our primary measure of interest—individuals' beliefs about how climate policy impacts the economy. Each variable captures a slightly different aspect of this relationship. STATE_RPS_ECONOMY (our primary outcome variable) directly assesses whether individuals believe that requiring greater use of renewable energy will boost the economy, essentially measuring perceptions of climate policy. The CARBONTAX variations reflect people’s willingness to pay for greenhouse gas emission reductions, offering insight into how they weigh personal economic interests against broader climate concerns. INTL_ECONOMICIMPACT clearly indicates individuals’ views on the interaction between U.S. economic performance and climate change policy. 
+
+## How does it realte to your expectations
+
+Our graphs have shown results fairly consistent with our expectations, with respondents being more likely to support higher taxation to reduce climate emissions if they believe more strongly in climate change, being more likely to view Climate treaties as beneficial to the economy if they believe that climate change is an urgent issue, more liberal leaning individuals believing the economy will benefit from greater use of renewable energy. We expected that individuals who thought economic risk was low for climate policy would have higher levels of belief in climate change, and that has seemed to be the case thus far. In addition to our main assumptions, we also wanted to look at economic views of climate change	 over time, and we found that people were less likely to support climate change measures as time went on.
+
+## What are your key explanatory variables?
+
+* GW_BELIEF
+  + Is there solid evidence average temp on earth has been warming in past 4 decades?
+* GW_CONCERN
+  + How concerned are you about the issue of global warming
+* BELIEVER_IMMEDIACY 
+  + Does global warming require immediate government action
+* WAVE_NUMBER
+  + Year survey was taken
+* GOVT_EFFECTIVENESS
+  + How effective can governments be at preventing global warming from happening
+* GOVT_FED
+  + How much responsibility federal government has for taking actions to reduce global warming
+* STATE_VEHICLES
+  + State governments should require auto makers to increase the fuel efficiency of their vehicles even if it increases the cost of the vehicle.
+* STATE_NEIGHBORSACT
+  + My state should not adopt anti-global warming policies unless its neighboring states also adopt similar policies.
+* GASTAX_GOVT
+  + Which level of government should increase gas tax
+* FFTAX_GOVT
+  + Which level of government should increase taxes on fossil fuels
+* CAPTRADE_GOVT_V1
+  + Which level of government should use cap & trade
+* GOVT_EFFECTIVENESS_V2
+  + Can governments be effective at preventing climate change
+* GOVT_EFFECTIVENESS
+  + How effective can governments be at preventing global warming from happening
+* STATE_RPS
+  + First, State governments should require a set portion of all electricity to come from renewable energy sources such as wind and solar power.
+* DEMOG_EDU
+  + Highest level of education
+* DEMOG_POLVIEWS
+  + Political beliefs: conservative to liberal
+* DEMOG_RELIG
+  + Religious affiliation
+  
+```{r install packages}
+#Install Packages
+library(polite)
+library(rvest)
+library(tibble)
+library(tidyverse)
+library(dplyr)
+```
+
+```{r load data}
+#Loading the dataset
+load("data/36368-0001-Data.rda")
+econ_clim_data <- as.data.frame(da36368.0001)
+```
+
+```{r new dataframe}
+#Creating a dataframe with only our necessary variables
+
+working_dataset <- econ_clim_data %>% select("WAVE_NUMBER", "INTL_ECONOMICIMPACT", "STATE_VEHICLES_V1","STATE_VEHICLES_V2","CARBONTAX_COST10PCT","CARBONTAX_COST15DOL","CARBONTAX_COST50DOL", "STATE_RPS_ECONOMY","GW_BELIEF","GW_CONCERN","BELIEVER_IMMEDIACY","GOVT_EFFECTIVENESS","GOVT_FED","STATE_NEIGHBORSACT","GASTAX_GOVT","FFTAX_GOVT","CAPTRADE_GOVT_V1","GOVT_EFFECTIVENESS_V2","GOVT_EFFECTIVENESS","STATE_RPS_V1","STATE_RPS_V2","STATE_RPS_V2_COST100","STATE_RPS_V3","STATE_RPS_V3_COST25","STATE_RPS_V3_COST50","DEMOG_EDU","DEMOG_POLVIEWS","DEMOG_RELIG")
+```
+
+```{r summary table}
+#Summary Table for our dataset
+summary_table <- summary(working_dataset)
+summary_table
+```
+
+# Data Wrangling and Transformation
+
+## What data cleaning did you have to do?
+
+The majority of the data cleaning entailed removing NA values (there were a lot since not all questions were asked each year), as well as Not Sure or Refused to answer (Since they don’t provide any information into how the respondent stands on economic or climate based issues).
+
+## How did you wrangle the data?
+
+For the Economic Impact Perception vs. Belief in Climate Immediacy graph, we had to convert the variable INTL_ECONOMICIMPACT from String responses to numerical responses in order to take an average value of the responses for the different BELIEVER_IMMEDIACY values. 
+
+We simplified WAVE_NUMBER into just the year that the surveys were taken and converted them into `Date` data types for ease of graphing. January 1st was given as an arbitrary date and does not represent the true date that the surveys were taken.
+
+For the Year vs. State Economy graph, we had to remove N/A observations and that left us with only the four years that asked that question.
+
+## Are you deciding to exclude any observations? If so, why?
+
+For different graphs we had to exclude years that a given question was not asked since the only data provided in such cases was “NA”. However, we did not exclude any row based observations - as an observation is the responses from one individual, and choosing to exclude their responses would bias the data.
+
+## Did you have to create any new variables from existing variables? If so, how and why?
+
+We did not create any new variables.
+
+# Graphs
+
+```{r demog_polviews_state_rps_economy_graph}
+eco_by_polview <- as.data.frame(table(working_dataset$DEMOG_POLVIEWS, working_dataset$STATE_RPS_ECONOMY))
+colnames(eco_by_polview) <- c("POLVIEWS", "STATE_ECO", "Count")
+
+eco_by_polview <- eco_by_polview %>%
+  spread(key = STATE_ECO, value = Count, fill = 0)
+
+eco_by_polview <- eco_by_polview %>%
+  pivot_longer(cols = c("(1) Strongly agree", "(2) Somewhat agree", "(3) Somewhat disagree", "(4) Strongly disagree"), names_to = "STATE_ECO", values_to = "Count")
+
+polviews_state_eco <- eco_by_polview %>% ggplot(aes(x=POLVIEWS, y=Count, fill = STATE_ECO)) + geom_bar(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+        axis.title.y = element_text(size = 7))+
+  labs(x="Political Views", y="Count of Answers to \"renewable energies grow economies\"")
+polviews_state_eco
+```
+
+```{r clean dates}
+working_dataset <- working_dataset %>%
+  mutate(WAVE_NUMBER = (sub('.*(?=.....$)', '', WAVE_NUMBER, perl=T)) %>%
+                        paste("/01/01", sep="")
+                        )
+```
+
+```{r date and international economic impact}
+date_intl_graph <- working_dataset[working_dataset$STATE_RPS_ECONOMY %in% c("(1) Strongly agree", "(2) Somewhat agree", "(3) Somewhat disagree", "(4) Strongly disagree"),]
+
+
+date_intl_eco <- date_intl_graph %>% ggplot(aes(x=WAVE_NUMBER, y=STATE_RPS_ECONOMY, fill = STATE_RPS_ECONOMY)) + 
+  geom_col(position = "stack") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+        axis.text.y=element_blank()) +
+  labs(x="year", y="renewable energies grow economies")
+date_intl_eco
+```
+
+```{r}
+#Graph 1: Support for Carbon Tax by Levels of Concern About Global Warming
+#Getting rid of NA values in GW_Concern
+excluded_values <- c(NA)
+
+# Calculate percentages of people that strong support, somewhat support, somewhat oppose, and strongly oppose for differnet GW_Concern responses while removing NA and "Not Sure" responses
+data_carbontax10 <- working_dataset %>%
+  filter(!GW_CONCERN %in% excluded_values, !is.na(CARBONTAX_COST10PCT)) %>% 
+  group_by(GW_CONCERN, CARBONTAX_COST10PCT) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  group_by(GW_CONCERN) %>%
+  mutate(Percentage = (Count / sum(Count)) * 100) %>%
+  mutate(CarbonTax = "Revenue Neutral")
+
+data_carbontax15 <- working_dataset %>%
+  filter(!GW_CONCERN %in% excluded_values, !is.na(CARBONTAX_COST15DOL)) %>%
+  group_by(GW_CONCERN, CARBONTAX_COST15DOL) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  group_by(GW_CONCERN) %>%
+  mutate(Percentage = (Count / sum(Count)) * 100) %>%
+  mutate(CarbonTax = "$15/month")
+
+data_carbontax50 <- working_dataset %>%
+  filter(!GW_CONCERN %in% excluded_values, !is.na(CARBONTAX_COST50DOL)) %>%  
+  group_by(GW_CONCERN, CARBONTAX_COST50DOL) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  group_by(GW_CONCERN) %>%
+  mutate(Percentage = (Count / sum(Count)) * 100) %>%
+  mutate(CarbonTax = "$50/month")
+
+# Rename response column
+colnames(data_carbontax10)[2] <- "Response"
+colnames(data_carbontax15)[2] <- "Response"
+colnames(data_carbontax50)[2] <- "Response"
+
+# Combine data to use for the graph
+data_combined <- bind_rows(data_carbontax10, data_carbontax15, data_carbontax50)
+
+# Creating the stacked bar chart
+ggplot(data_combined, aes(x = GW_CONCERN, y = Percentage, fill = Response)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_wrap(~ CarbonTax, ncol = 1) +  
+  labs(
+    title = "Support for Carbon Tax by Levels of Concern About Global Warming",
+    x = "Level of Concern About Global Warming",
+    y = "Percentage of Respondants",
+    fill = "Response"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+This graph shows the level of support respondents have for the different variations of the Carbon tax which are designed to significantly lower greenhouse gases. Revenue Neutral means that every dollar collected by the government would be returned to the public as an income tax rebate. 15\$/month means it would increase energy costs by 15 dollars a month, and 50\$/month means it would increase energy costs by 50\$/month.
+
+```{r}
+#Graph 2: Economic Impact Perception vs. Belief in Climate Immediacy
+#Removing NA values for graph
+clean_data <- working_dataset %>%
+  filter(!is.na(INTL_ECONOMICIMPACT), !is.na(BELIEVER_IMMEDIACY))
+
+#Changing INTL_ECONOMICIMPACT to have numerical values instead of words
+second_graph <- clean_data %>%
+  filter(INTL_ECONOMICIMPACT %in% c(
+    "(1) Strongly agree", "(2) Somewhat agree", 
+    "(3) Somewhat disagree", "(4) Strongly disagree"
+  )) %>%
+  mutate(INTL_ECONOMICIMPACT = case_when(
+    INTL_ECONOMICIMPACT == "(1) Strongly agree" ~ 1,
+    INTL_ECONOMICIMPACT == "(2) Somewhat agree" ~ 2,
+    INTL_ECONOMICIMPACT == "(3) Somewhat disagree" ~ 3,
+    INTL_ECONOMICIMPACT == "(4) Strongly disagree" ~ 4
+  ))
+
+#Calculating the average numerical value of INTL_ECONOMICIMPACT for each response of BELIEVER_IMMEDIACY
+result <- second_graph %>%
+  group_by(BELIEVER_IMMEDIACY) %>%
+  summarise(avg_intl_economic_impact = mean(INTL_ECONOMICIMPACT, na.rm = TRUE))
+
+# Plotting the result
+ggplot(result, aes(x = BELIEVER_IMMEDIACY, y = avg_intl_economic_impact, group = 1)) +
+  geom_line(color = "#1f78b4", size = 1.5) +   
+  geom_point(linewidth = 2.5, color = "purple") +   
+  labs(
+    title = "Economic Impact Perception vs. Belief in Climate Immediacy",
+    x = "Climate Change Requires Immediate Government Action",
+    y = "Leaving Climate Treaty Benefits Economy"
+  ) +
+  scale_y_continuous(limits = c(1, 4),
+    breaks = seq(1, 4, by = 1),
+    labels = c("Strongly Agree", "Somewhat Agree", "Somewhat Disagree", "Strongly Disagree")
+  ) +
+  theme_bw(base_size = 11.5)+
+  theme(plot.margin = margin(10, 20, 10, 20))
+```
+
+This graph shows the average level that respondants believe that the U.S. economy would benefit from leaving the international climate treaty designed to reduce greenhouse gas emissions - if they believe or don't believe that global warming requires immediate government action.
