@@ -1,7 +1,7 @@
 ---
 title: "EDA"
 author: "Caroline & Eli"
-format: pdf
+format: html
 execute: 
   warning: false
   message: false
@@ -76,7 +76,7 @@ library(dplyr)
 
 ```{r load data}
 #Loading the dataset
-load("data/36368-0001-Data.rda")
+load("../data/36368-0001-Data.rda")
 econ_clim_data <- as.data.frame(da36368.0001)
 ```
 
