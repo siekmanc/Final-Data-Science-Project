@@ -339,12 +339,23 @@ working_dataset2 <- working_dataset %>%
       !is.na(CARBONTAX_COST50DOL) & CARBONTAX_COST50DOL %in% c("(1) Strongly support", "(2) Somewhat support") ~ "Willing to pay $50/month",
       !is.na(CARBONTAX_COST15DOL) & CARBONTAX_COST15DOL %in% c("(1) Strongly support", "(2) Somewhat support") ~ "Willing to pay $15/month",
       !is.na(CARBONTAX_COST10PCT) & CARBONTAX_COST10PCT %in% c("(1) Strongly support", "(2) Somewhat support") ~ "Willing to pay Revenue Neutral",
-      TRUE ~ NA_character_  # This ensures NA if no support and any value is NA
+      !is.na(CARBONTAX_COST50DOL) & CARBONTAX_COST50DOL %in% c("(3) Somewhat oppose", "(4) Strongly oppose") |
+  	!is.na(CARBONTAX_COST15DOL) & CARBONTAX_COST15DOL %in% c("(3) Somewhat oppose", "(4) Strongly oppose") |
+  	!is.na(CARBONTAX_COST10PCT) & CARBONTAX_COST10PCT %in% c("(3) Somewhat oppose", "(4) Strongly oppose") ~ "Not willing to pay"
     )
   )
 
+working_dataset2 <- working_dataset2 %>%
+  mutate(
+    DEMOG_POLVIEWS = case_when(
+      DEMOG_POLVIEWS %in% c("(4) Somewhat liberal", "(5) Very liberal") ~ "Liberal",
+      DEMOG_POLVIEWS %in% c("(2) Somewhat conservative", "(1) Very conservative") ~ "Conservative",
+      DEMOG_POLVIEWS %in% c("(3) Moderate") ~ "Moderate",
+      TRUE ~ NA_character_
+    )
+  )
 
-working_dataset2 <- working_dataset %>%
+working_dataset2 <- working_dataset2 %>%
   mutate(
     STATE_RPS_SUPPORT = case_when(
       !is.na(STATE_RPS_V3_COST50) & STATE_RPS_V3_COST50 %in% c("(1) Strongly agree", "(2) Somewhat agree") ~ "Willing to pay $50/month",
@@ -357,6 +368,27 @@ working_dataset2 <- working_dataset %>%
 
 # View the dataset with the new variable
 View(working_dataset2)
+```
+
+```{r another graph}
+#Graph showing the percent support for Carbon Tax by the Level of Responsibility they think the Government should have over Climate change and their politcal Views
+working_dataset2 %>%
+  filter(!is.na(CARBONTAX_SUPPORT), !is.na(GOVT_FED), !is.na(DEMOG_POLVIEWS)) %>%
+  mutate(SUPPORT_BINARY = ifelse(CARBONTAX_SUPPORT %in% c("Willing to pay $50/month", 
+                                                           "Willing to pay $15/month", 
+                                                           "Willing to pay Revenue Neutral"), 1, 0)) %>%
+  group_by(GOVT_FED, DEMOG_POLVIEWS) %>%
+  summarise(mean_support = mean(SUPPORT_BINARY, na.rm = TRUE), .groups = "drop") %>%
+  ggplot(aes(x = DEMOG_POLVIEWS, y = GOVT_FED, fill = mean_support)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "darkgreen", labels = scales::percent) +
+  labs(
+    x = "Political Views",
+    y = "Federal Gov Level Responsibility",
+    fill = "% Support for Carbon Tax",
+    title = "Support for Carbon Tax by Gov Responsibility & Political Views"
+  ) +
+  theme_minimal()
 ```
 
 
