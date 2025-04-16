@@ -14,6 +14,9 @@ library(rvest)
 library(tibble)
 library(tidyverse)
 library(dplyr)
+library(reticulate)
+path_to_python <- "/Users/Eli/anaconda3/python.exe"
+use_python(path_to_python)
 ```
 
 ```{r load data}
@@ -71,4 +74,60 @@ date_intl_eco <- date_intl_graph %>% ggplot(aes(x=WAVE_NUMBER, y=STATE_RPS_ECONO
         axis.text.y=element_blank()) +
   labs(x="year", y="renewable energies grow economies")
 date_intl_eco
+```
+
+```{python tree}
+import pandas as pd
+import numpy as np
+from sklearn.compose import make_column_transformer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.compose import make_column_transformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.model_selection import train_test_split
+
+tree_df = r.working_dataset[['DEMOG_POLVIEWS', 'DEMOG_EDU', 'INTL_ECONOMICIMPACT']].copy()
+
+tree_df['DEMOG_POLVIEWS'] = pd.Categorical(tree_df['DEMOG_POLVIEWS'])
+tree_df['DEMOG_EDU'] = pd.Categorical(tree_df['DEMOG_EDU'])
+tree_df['INTL_ECONOMICIMPACT'] = pd.Categorical(tree_df['INTL_ECONOMICIMPACT'])
+
+tree_df = tree_df.dropna().reset_index(drop=True)
+
+# create X and y, now with rank
+X = tree_df[['DEMOG_POLVIEWS', 'DEMOG_EDU']]
+y = tree_df.INTL_ECONOMICIMPACT
+
+# create train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+  X, y, test_size = 0.25, random_state = 2010) 
+
+# one hot encoding
+preprocessor = make_column_transformer(
+  (OneHotEncoder(drop = 'if_binary'), ['DEMOG_EDU']),
+  remainder = 'passthrough',
+  verbose_feature_names_out = False
+)
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.pipeline import Pipeline
+
+five_leaves_class = Pipeline([
+  ("preprocessor", preprocessor),
+  ("tree", DecisionTreeClassifier(max_leaf_nodes = 5, random_state = 0))
+  ]).fit(X_train, y_train)
+  
+features_name = five_leaves_class['preprocessor'].get_feature_names_out()
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.tree import plot_tree
+
+fig, ax = plt.subplots()
+plot_tree(
+  five_leaves_class['tree'], ax = ax, impurity = False,
+  feature_names = features_name)
+plt.show()
+plt.close()
 ```
