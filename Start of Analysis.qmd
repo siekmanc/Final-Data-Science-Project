@@ -1,5 +1,5 @@
 ---
-title: "EDA"
+title: ""
 author: "Caroline & Eli"
 format: html
 execute: 
@@ -343,9 +343,22 @@ working_dataset2 <- working_dataset %>%
     )
   )
 
+
+working_dataset2 <- working_dataset %>%
+  mutate(
+    STATE_RPS_SUPPORT = case_when(
+      !is.na(STATE_RPS_V3_COST50) & STATE_RPS_V3_COST50 %in% c("(1) Strongly agree", "(2) Somewhat agree") ~ "Willing to pay $50/month",
+      !is.na(STATE_RPS_V3_COST25) & STATE_RPS_V3_COST25 %in% c("(1) Strongly agree", "(2) Somewhat agree") ~ "Willing to pay $25/month",
+      !is.na(STATE_RPS_V3) & STATE_RPS_V3 %in% c("(1) Strongly agree", "(2) Somewhat agree") ~ "Willing to pay Revenue Neutral",
+      !is.na(STATE_RPS_V3) & STATE_RPS_V3 %in% c("(3) Somewhat disagree", "(4) Strongly disagree") ~ "Does not support",
+      TRUE ~ NA_character_  # This ensures NA if no support and any value is NA
+    )
+  )
+
 # View the dataset with the new variable
 View(working_dataset2)
 ```
+
 
 #Creating new smaller dataframe for decision tree in python
 #Converting data to python format
@@ -354,11 +367,23 @@ write.csv(working_dataset2, "working_dataset2.csv", row.names = FALSE)
 ```
 
 ```{python}
+working_dataset2 = pd.read_csv('working_dataset2.csv')
+
+columns_to_select1 = ["DEMOG_POLVIEWS", "DEMOG_EDU", "GW_BELIEF", 
+                     "STATE_RPS_SUPPORT","GOVT_EFFECTIVENESS"]
+    
+working_data_tree2 = working_dataset2[columns_to_select1]
+
+working_data_tree2 = working_data_tree2.dropna(subset=["STATE_RPS_SUPPORT"])
+View(working_data_tree2)
+```
+
+```{python}
 #Messing with variables
 working_dataset2 = pd.read_csv('working_dataset2.csv')
 
 columns_to_select = ["DEMOG_POLVIEWS", "DEMOG_EDU", "GW_BELIEF", 
-                     "INTL_ECONOMICIMPACT", "CARBONTAX_SUPPORT"]
+                     "INTL_ECONOMICIMPACT", "CARBONTAX_SUPPORT","STATE_RPS_SUPPORT"]
 
 # Create the subset DataFrame
 working_data_tree = working_dataset2[columns_to_select]
@@ -399,31 +424,42 @@ View(working_data_shrub)
 
 #Decision Tree
 ```{python}
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+import matplotlib.pyplot as plt
 import pandas as pd
 
+# Assuming 'working_data_shrub' is already defined
 X = working_data_shrub[["DEMOG_POLVIEWS", "DEMOG_EDU"]]
 y = working_data_shrub["GW_BELIEF"]
 
-# Create pipeline
+# Define preprocessing
 categorical_features = ["DEMOG_POLVIEWS", "DEMOG_EDU"]
-encoder = OneHotEncoder(sparse=False)
+encoder = OneHotEncoder(sparse_output=False)
 
+preprocessor = ColumnTransformer(
+    transformers=[("cat", encoder, categorical_features)],
+    remainder='drop'
+)
+
+# Build pipeline
 clf = Pipeline([
-    ("encode", ColumnTransformer([("cat", encoder, categorical_features)], remainder='drop')),
+    ("preprocessor", preprocessor),
     ("tree", DecisionTreeClassifier(max_depth=5, random_state=50))
 ])
 
+# Fit model
 clf.fit(X, y)
 
-
+# Plot the decision tree
 plt.figure(figsize=(20, 10))
-plot_tree(clf, 
-          feature_names=["Political Views", "Education"], 
-          class_names=["No", "Yes"], 
-          filled=True, 
-          rounded=True, 
+plot_tree(clf.named_steps["tree"],  # Get the tree model inside the pipeline
+          feature_names=clf.named_steps["preprocessor"].get_feature_names_out(),
+          class_names=["No", "Yes"],
+          filled=True,
+          rounded=True,
           fontsize=6)
 plt.title("Decision Tree: Predicting Belief in Global Warming")
 plt.tight_layout()
