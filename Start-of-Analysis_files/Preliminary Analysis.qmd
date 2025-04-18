@@ -2,7 +2,7 @@
 title: "Preliminary Analysis"
 author: "Caroline & Eli"
 date: "4/16/25"
-format: html
+format: pdf
 execute: 
   warning: false
   message: false
@@ -11,20 +11,30 @@ execute:
 # Preliminary Analysis
 
 ## Introduction and Data
-	In the United States, climate change has become a heavily contentious and debated issue. The climate crisis is one of the largest issues that we are facing today, and understanding the general population's stance and views on climate change is important for policy making decisions. There have been a myriad of studies looking at what factors are correlated with a belief in climate change, like Robinson and Furnham’s (2022) study: Correlates of belief in climate change: Demographics, ideology and belief systems. There are also studies investigating companies' willingness to pay to reduce climate change, like Zhao et. all (2018): Factors influencing companies' willingness to pay for carbon emissions: Emission trading schemes in China. However, there have not been very many studies examining what impacts individuals willingness to pay to counteract climate change. This is a very important area to examine since public support for climate change action is necessary to influence governments to make changes - like public support for carbon reduction policies which we will examine later. 
-	The question we aim to answer throughout this data analysis is: How do individual beliefs (regarding climate change, political stances, education levels, and views on the role of government) influence personal willingness to spend to reduce climate change?
-	In this dataset we anticipate that there will be a strong positive correlation between individuals that are more liberal and higher educated and willingness to pay to reduce climate change. We also anticipate the reverse, that individuals that are less educated and more conservative will have lower willingness to pay to support climate change. We also expect that the more an individual believes in the reality of global warming and the more pressing they find the issue to be, the more likely they are to be willing to pay to reduce greenhouse gas emissions. 
+
+In the United States, climate change has become a heavily contentious and debated issue. The climate crisis is one of the largest issues that we are facing today, and understanding the general population's stance and views on climate change is important for policy making decisions. There have been a myriad of studies looking at what factors are correlated with a belief in climate change, like Robinson and Furnham’s (2022) study: Correlates of belief in climate change: Demographics, ideology and belief systems. There are also studies investigating companies' willingness to pay to reduce climate change, like Zhao et. all (2018): Factors influencing companies' willingness to pay for carbon emissions: Emission trading schemes in China. However, there have not been very many studies examining what impacts individuals willingness to pay to counteract climate change. This is a very important area to examine since public support for climate change action is necessary to influence governments to make changes - like public support for carbon reduction policies which we will examine later. 
+
+The question we aim to answer throughout this data analysis is: How do individual beliefs (regarding climate change, political stances, education levels, and views on the role of government) influence personal willingness to spend to reduce climate change?
+
+In this dataset we anticipate that there will be a strong positive correlation between individuals that are more liberal and higher educated and willingness to pay to reduce climate change. We also anticipate the reverse, that individuals that are less educated and more conservative will have lower willingness to pay to support climate change. We also expect that the more an individual believes in the reality of global warming and the more pressing they find the issue to be, the more likely they are to be willing to pay to reduce greenhouse gas emissions. 
 
 The data set that we are analyzing comes from The National Surveys on Energy and Environment (NSEE). The NSEE is a biannual national opinion survey. This data set contains 18 survey batches collected from Fall 2008 to Spring 2017. Each case represents an individual’s responses to the survey questions. There are 15,136 total cases. 
 
 ## Relevant variables:
 CARBONTAX - These are 3 variables that look at different levels of willingness to pay in support of the Carbon tax in this general format: Support for Carbon fuels tax if it raises costs by X$ a month. What if the carbon fuels taxes significantly lowered greenhouse gases but increased your energy costs by X dollars a month? Would you strongly support, somewhat support, somewhat oppose or strongly oppose this type of system?
+
 STATE_RPS_ECONOMY- This measures the level of agreement respondents have with this statement- State governments will boost their economies by requiring greater use of renewable energy.
+
 INTL_ECONOMICIMPACT- This measures the level of agreement respondents have with this statement- Overall, the U.S. economy would benefit from leaving the international climate treaty designed to reduce greenhouse gas emissions)
+
 DEMOG_POLVIEWS: This reports respondents Political beliefs, on a scale from conservative to liberal
+
 GW_CONCERN: This reports how concerned respondents are about the issue of global warming.
+
 BELIEVER_IMMEDIACY: This reports if respondents believe that global warming requires immediate government action.
+
 GOVT_FED: This measures the level of agreement respondents have with this statement- How much responsibility does the federal government have for taking actions to reduce global warming?
+
 DEMOG_EDU: The Highest level of education respondents have. 
 
 ## Data wrangling
@@ -48,19 +58,22 @@ library(rvest)
 library(tibble)
 library(tidyverse)
 library(dplyr)
+library(reticulate)
+path_to_python <- "/Users/Eli/anaconda3/python.exe"
+use_python(path_to_python)
 ```
 
-```{python}
+```{python py-install}
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 from sklearn.pipeline import Pipeline
-from sklearn.compose import make_column_transformer
+from sklearn.compose import make_column_transformer, ColumnTransformer
 from sklearn.linear_model import LinearRegression 
 from sklearn.model_selection import cross_val_predict, train_test_split, cross_val_score 
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, ConfusionMatrixDisplay
 from sklearn.linear_model import Ridge, RidgeCV, Lasso, LassoCV, ElasticNetCV
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor, plot_tree
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -70,7 +83,7 @@ from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegress
 
 ```{r load data}
 #Loading the dataset
-load("36368-0001-Data.rda")
+load("../data/36368-0001-Data.rda")
 econ_clim_data <- as.data.frame(da36368.0001)
 ```
 
@@ -292,6 +305,19 @@ working_dataset2 <- working_dataset %>%
 
 working_dataset2 <- working_dataset2 %>%
   mutate(
+    CARBONTAX_SUPPORT_BI = case_when(
+      !is.na(CARBONTAX_COST50DOL) & CARBONTAX_COST50DOL %in% c("(1) Strongly support", "(2) Somewhat support") |
+      !is.na(CARBONTAX_COST15DOL) & CARBONTAX_COST15DOL %in% c("(1) Strongly support", "(2) Somewhat support") |
+      !is.na(CARBONTAX_COST10PCT) & CARBONTAX_COST10PCT %in% c("(1) Strongly support", "(2) Somewhat support") ~ "Willing to pay",
+      !is.na(CARBONTAX_COST50DOL) & CARBONTAX_COST50DOL %in% c("(3) Somewhat oppose", "(4) Strongly oppose") |
+      !is.na(CARBONTAX_COST15DOL) & CARBONTAX_COST15DOL %in% c("(3) Somewhat oppose", "(4) Strongly oppose") |
+      !is.na(CARBONTAX_COST10PCT) & CARBONTAX_COST10PCT %in% c("(3) Somewhat oppose", "(4) Strongly oppose") ~ "Not willing to pay",
+      TRUE ~ NA_character_  # This ensures NA if no support and any value is NA
+    )
+  ) %>% relocate(CARBONTAX_SUPPORT_BI, .before = STATE_RPS_ECONOMY)
+
+working_dataset2 <- working_dataset2 %>%
+  mutate(
     DEMOG_POLVIEWS = case_when(
       DEMOG_POLVIEWS %in% c("(4) Somewhat liberal", "(5) Very liberal") ~ "Liberal",
       DEMOG_POLVIEWS %in% c("(2) Somewhat conservative", "(1) Very conservative") ~ "Conservative",
@@ -327,9 +353,167 @@ This graph shows the percent of individuals that support the carbon tax by their
 
 ## Results
 
+#Creating new smaller dataframe for decision tree in python
+#Converting data to python format
+```{r Converting data to python format}
+#| echo: false
+write.csv(working_dataset2, "working_dataset2.csv", row.names = FALSE)
+```
+
+```{python shrub2}
+#Messing with variables
+working_dataset2 = pd.read_csv('working_dataset2.csv')
+
+columns_to_select = ["DEMOG_POLVIEWS", "DEMOG_EDU", "GW_BELIEF", 
+                     "INTL_ECONOMICIMPACT", "CARBONTAX_SUPPORT", "CARBONTAX_SUPPORT_BI"]
+
+# Create the subset DataFrame
+working_data_tree2 = working_dataset2[columns_to_select]
+
+working_data_tree2 = working_data_tree2.dropna(subset=["DEMOG_POLVIEWS", "CARBONTAX_SUPPORT", "CARBONTAX_SUPPORT_BI", "GW_BELIEF"])
+
+
+#For data with more rows
+smaller_columns2 = ["DEMOG_POLVIEWS", "CARBONTAX_SUPPORT", "CARBONTAX_SUPPORT_BI", "GW_BELIEF"]
+
+working_data_shrub2 = working_data_tree2[smaller_columns2]
+
+#Redefining variables
+working_data_shrub2.loc[:,'DEMOG_POLVIEWS'] = working_data_shrub2['DEMOG_POLVIEWS'].replace({
+    '(4) Somewhat liberal': 'Liberal',
+    '(2) Somewhat conservative': 'Conservative',
+    '(1) Very conservative': 'Conservative',
+    '(5) Very liberal': 'Liberal',
+    '(3) Moderate': 'Moderate'
+})
+
+working_data_shrub2.loc[:,'GW_BELIEF'] = working_data_shrub2['GW_BELIEF'].replace({
+    '(1) Yes': 'Yes',
+    '(2) No': 'No'
+})
+```
+
+```{python carbon-tree-bi}
+
+
+# gw_belief -> polviews -> carbontax support 
+
+# Assuming 'working_data_shrub' is already defined
+X = working_data_shrub2[["GW_BELIEF", "DEMOG_POLVIEWS"]]
+y = working_data_shrub2["CARBONTAX_SUPPORT_BI"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 2010)
+
+# Define preprocessing
+categorical_features = ["GW_BELIEF", "DEMOG_POLVIEWS"]
+encoder = OrdinalEncoder()
+
+preprocessor = ColumnTransformer(
+    transformers=[("cat", encoder, categorical_features)],
+    remainder='drop'
+)
+
+# Build pipeline
+clf = Pipeline([
+    ("preprocessor", preprocessor),
+    ("tree", DecisionTreeClassifier(max_depth=5, random_state=50))
+])
+
+# Fit model
+clf = clf.fit(X_train, y_train)
+
+# Plot the decision tree
+plt.figure(figsize=(20, 10))
+plot_tree(clf["tree"],  # Get the tree model inside the pipeline
+          feature_names=clf["preprocessor"].get_feature_names_out(),
+          class_names=[str(c) for c in clf["tree"].classes_],
+          filled=True,
+          rounded=True,
+          fontsize=6)
+plt.title("Decision Tree: Predicting Willingness to Spend to Prevent Climate Change")
+plt.tight_layout()
+plt.show()
+
+# Access the fitted encoder
+encoder_fitted = clf["preprocessor"].named_transformers_["cat"]
+
+# Print categories in order
+for feature, cats in zip(categorical_features, encoder_fitted.categories_):
+    print(f"{feature}:")
+    for i, cat in enumerate(cats):
+        print(f"  {i}: {cat}")
+```
+```{python roc_auc}
+clf.predict_proba(working_data_shrub2[["GW_BELIEF", "DEMOG_POLVIEWS","CARBONTAX_SUPPORT_BI"]])
+
+from sklearn.metrics import RocCurveDisplay
+
+RocCurveDisplay.from_estimator(clf, X_test, y_test)
+plt.show()
+```
+
+```{python carbon-tree-support}
+
+support_gw_option = working_data_shrub2.copy()
+
+support_gw_option = support_gw_option[(support_gw_option.CARBONTAX_SUPPORT_BI.isin(["Willing to pay"]))]
+
+
+X = support_gw_option[["GW_BELIEF", "DEMOG_POLVIEWS"]]
+y = support_gw_option["CARBONTAX_SUPPORT"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 2010)
+
+# Define preprocessing
+categorical_features = ["GW_BELIEF", "DEMOG_POLVIEWS"]
+encoder = OrdinalEncoder()
+
+preprocessor = ColumnTransformer(
+    transformers=[("cat", encoder, categorical_features)],
+    remainder='drop'
+)
+
+# Build pipeline
+clf = Pipeline([
+    ("preprocessor", preprocessor),
+    ("tree", DecisionTreeClassifier(max_depth=5, random_state=100))
+])
+
+# Fit model
+clf = clf.fit(X_train, y_train)
+
+# Plot the decision tree
+plt.figure(figsize=(20, 10))
+plot_tree(clf["tree"],  # Get the tree model inside the pipeline
+          feature_names=clf["preprocessor"].get_feature_names_out(),
+          class_names=[str(c) for c in clf["tree"].classes_],
+          filled=True,
+          rounded=True,
+          fontsize=6)
+plt.title("Decision Tree: Predicting the Amount an Individual is Willing to Spend if they are Willing to Spend")
+plt.tight_layout()
+plt.show()
+```
+
+```{python confusion_matrix}
+cm = ConfusionMatrixDisplay.from_estimator(clf, X_test, y_test)
+
+plt.xticks(rotation=45);
+plt.yticks(rotation=45);
+
+plt.tight_layout()       # Helps reduce padding issues too
+
+# Save to PDF without clipping
+plt.savefig("confusion_matrix.pdf", bbox_inches='tight')
+```
+
+
+
+
 
 ## Discussion
 ## Analysis of Results
+Our data supports our claim that more liberal minded individuals who believe in climate change are more likely to be willing to personally pay to attempt to limit the effects. Among those that are willing to pay, however, the group that was willing to pay the most on average were conservatives who did not believe in climate change. This is result is very surprising, however we believe that it may be due to a small sample size, as described in the next section. For our decision tree regarding if individuals are willing or not to pay extra taxes, we got an AUC score of 0.73. This is not particularly good and we could probably do better if we fit a forest rather than just one decision tree. Similarly, with our decision tree regarding how much people would be willing to put towards taxes for climate change, our confusion matrix shows that our fitting did an extremely poor job for the three different classes. This could also probably be remedied by fitting a forest rather than a single tree. Going forward, we will make sure to fit forests rather than trees, and even though trees are visually very good and representing the splits we wanted, we many test some other models aswell.
 
 
 ## Reliability and Validity
