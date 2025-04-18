@@ -116,7 +116,7 @@ working_dataset <- econ_clim_data %>%
          "STATE_RPS_V3", "STATE_RPS_V3_COST25", "STATE_RPS_V3_COST50",
          "DEMOG_EDU", "DEMOG_POLVIEWS", "DEMOG_RELIG")
 
-View(working_dataset)
+#View(working_dataset)
 ```
 
 ```{r summary table}
@@ -352,6 +352,19 @@ working_dataset2 <- working_dataset %>%
 
 working_dataset2 <- working_dataset2 %>%
   mutate(
+    CARBONTAX_SUPPORT_BI = case_when(
+      !is.na(CARBONTAX_COST50DOL) & CARBONTAX_COST50DOL %in% c("(1) Strongly support", "(2) Somewhat support") |
+      !is.na(CARBONTAX_COST15DOL) & CARBONTAX_COST15DOL %in% c("(1) Strongly support", "(2) Somewhat support") |
+      !is.na(CARBONTAX_COST10PCT) & CARBONTAX_COST10PCT %in% c("(1) Strongly support", "(2) Somewhat support") ~ "Willing to pay",
+      !is.na(CARBONTAX_COST50DOL) & CARBONTAX_COST50DOL %in% c("(3) Somewhat oppose", "(4) Strongly oppose") |
+      !is.na(CARBONTAX_COST15DOL) & CARBONTAX_COST15DOL %in% c("(3) Somewhat oppose", "(4) Strongly oppose") |
+      !is.na(CARBONTAX_COST10PCT) & CARBONTAX_COST10PCT %in% c("(3) Somewhat oppose", "(4) Strongly oppose") ~ "Not willing to pay",
+      TRUE ~ NA_character_  # This ensures NA if no support and any value is NA
+    )
+  ) %>% relocate(CARBONTAX_SUPPORT_BI, .before = STATE_RPS_ECONOMY)
+
+working_dataset2 <- working_dataset2 %>%
+  mutate(
     DEMOG_POLVIEWS = case_when(
       DEMOG_POLVIEWS %in% c("(4) Somewhat liberal", "(5) Very liberal") ~ "Liberal",
       DEMOG_POLVIEWS %in% c("(2) Somewhat conservative", "(1) Very conservative") ~ "Conservative",
@@ -373,7 +386,7 @@ working_dataset2 <- working_dataset2 %>%
 
 
 # View the dataset with the new variable
-View(working_dataset2)
+#View(working_dataset2)
 ```
 
 ```{r another graph}
@@ -404,78 +417,21 @@ working_dataset2 %>%
 write.csv(working_dataset2, "working_dataset2.csv", row.names = FALSE)
 ```
 
-```{python}
-working_dataset2 = pd.read_csv('working_dataset2.csv')
-
-columns_to_select1 = ["DEMOG_POLVIEWS", "DEMOG_EDU", "GW_BELIEF", 
-                     "STATE_RPS_SUPPORT","GOVT_EFFECTIVENESS"]
-    
-working_data_tree2 = working_dataset2[columns_to_select1]
-
-working_data_tree2 = working_data_tree2.dropna(subset=["STATE_RPS_SUPPORT"])
-View(working_data_tree2)
-```
-
-```{python}
-#Messing with variables
-working_dataset2 = pd.read_csv('working_dataset2.csv')
-
-columns_to_select = ["DEMOG_POLVIEWS", "DEMOG_EDU", "GW_BELIEF", 
-                     "INTL_ECONOMICIMPACT", "CARBONTAX_SUPPORT","STATE_RPS_SUPPORT"]
-
-# Create the subset DataFrame
-working_data_tree = working_dataset2[columns_to_select]
-
-working_data_tree = working_data_tree.dropna(subset=["DEMOG_POLVIEWS", "DEMOG_EDU","GW_BELIEF"])
-
-
-#For data with more rows
-smaller_columns = ["DEMOG_POLVIEWS", "DEMOG_EDU", "GW_BELIEF"]
-
-working_data_shrub = working_data_tree[smaller_columns]
-
-#Redefining variables
-working_data_shrub.loc[:,'DEMOG_POLVIEWS'] = working_data_shrub['DEMOG_POLVIEWS'].replace({
-    '(4) Somewhat liberal': 'Liberal',
-    '(2) Somewhat conservative': 'Conservative',
-    '(1) Very conservative': 'Conservative',
-    '(5) Very liberal': 'Liberal',
-    '(3) Moderate': 'Moderate'
-})
-
-working_data_shrub.loc[:,'DEMOG_EDU'] = working_data_shrub['DEMOG_EDU'].replace({
-    '(5) Graduate or professional degree': 'Graduate or professional degree',
-    '(4) College  graduate': 'College graduate',
-    '(3) Some college or technical school': 'Some College or technical school',
-    '(2) High school graduate': 'High school graduate',
-    '(1) Less than high school graduate': 'Less than high school graduate'
-})
-
-working_data_shrub.loc[:,'GW_BELIEF'] = working_data_shrub['GW_BELIEF'].replace({
-    '(1) Yes': 'Yes',
-    '(2) No': 'No'
-})
-
-View(working_data_shrub)
-#working_data_shrub
-
-```
-
 ```{python shrub2}
 #Messing with variables
 working_dataset2 = pd.read_csv('working_dataset2.csv')
 
 columns_to_select = ["DEMOG_POLVIEWS", "DEMOG_EDU", "GW_BELIEF", 
-                     "INTL_ECONOMICIMPACT", "CARBONTAX_SUPPORT"]
+                     "INTL_ECONOMICIMPACT", "CARBONTAX_SUPPORT", "CARBONTAX_SUPPORT_BI"]
 
 # Create the subset DataFrame
 working_data_tree2 = working_dataset2[columns_to_select]
 
-working_data_tree2 = working_data_tree.dropna(subset=["DEMOG_POLVIEWS", "CARBONTAX_SUPPORT","GW_BELIEF"])
+working_data_tree2 = working_data_tree2.dropna(subset=["DEMOG_POLVIEWS", "CARBONTAX_SUPPORT", "CARBONTAX_SUPPORT_BI", "GW_BELIEF"])
 
 
 #For data with more rows
-smaller_columns2 = ["DEMOG_POLVIEWS", "CARBONTAX_SUPPORT", "GW_BELIEF"]
+smaller_columns2 = ["DEMOG_POLVIEWS", "CARBONTAX_SUPPORT", "CARBONTAX_SUPPORT_BI", "GW_BELIEF"]
 
 working_data_shrub2 = working_data_tree2[smaller_columns2]
 
@@ -493,12 +449,12 @@ working_data_shrub2.loc[:,'GW_BELIEF'] = working_data_shrub2['GW_BELIEF'].replac
     '(2) No': 'No'
 })
 
-View(working_data_shrub2)
+#View(working_data_shrub2)
 #working_data_shrub
 
 ```
 
-```{python carbon-tree}
+```{python carbon-tree-bi}
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
@@ -511,7 +467,9 @@ import pandas as pd
 
 # Assuming 'working_data_shrub' is already defined
 X = working_data_shrub2[["GW_BELIEF", "DEMOG_POLVIEWS"]]
-y = working_data_shrub2["CARBONTAX_SUPPORT"]
+y = working_data_shrub2["CARBONTAX_SUPPORT_BI"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 2010)
 
 # Define preprocessing
 categorical_features = ["GW_BELIEF", "DEMOG_POLVIEWS"]
@@ -529,13 +487,13 @@ clf = Pipeline([
 ])
 
 # Fit model
-clf.fit(X, y)
+clf = clf.fit(X_train, y_train)
 
 # Plot the decision tree
 plt.figure(figsize=(20, 10))
-plot_tree(clf.named_steps["tree"],  # Get the tree model inside the pipeline
-          feature_names=clf.named_steps["preprocessor"].get_feature_names_out(),
-          class_names=[str(c) for c in clf.named_steps["tree"].classes_],
+plot_tree(clf["tree"],  # Get the tree model inside the pipeline
+          feature_names=clf["preprocessor"].get_feature_names_out(),
+          class_names=[str(c) for c in clf["tree"].classes_],
           filled=True,
           rounded=True,
           fontsize=6)
@@ -544,31 +502,38 @@ plt.tight_layout()
 plt.show()
 
 # Access the fitted encoder
-encoder_fitted = clf.named_steps["preprocessor"].named_transformers_["cat"]
+#encoder_fitted = clf["preprocessor"].named_transformers_["cat"]
 
 # Print categories in order
-for feature, cats in zip(categorical_features, encoder_fitted.categories_):
-    print(f"{feature}:")
-    for i, cat in enumerate(cats):
-        print(f"  {i}: {cat}")
+#for feature, cats in zip(categorical_features, encoder_fitted.categories_):
+#    print(f"{feature}:")
+#    for i, cat in enumerate(cats):
+#        print(f"  {i}: {cat}")
+```
+```{python}
+clf.predict_proba(working_data_shrub2[["GW_BELIEF", "DEMOG_POLVIEWS","CARBONTAX_SUPPORT_BI"]])
+
+from sklearn.metrics import RocCurveDisplay
+
+RocCurveDisplay.from_estimator(clf, X_test, y_test)
+plt.show()
 ```
 
-#Decision Tree
-```{python decision-tree}
-from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-import matplotlib.pyplot as plt
-import pandas as pd
+```{python carbon-tree-support}
 
-# Assuming 'working_data_shrub' is already defined
-X = working_data_shrub[["DEMOG_POLVIEWS", "DEMOG_EDU"]]
-y = working_data_shrub["GW_BELIEF"]
+support_gw_option = working_data_shrub2.copy()
+
+support_gw_option = support_gw_option[(support_gw_option.CARBONTAX_SUPPORT_BI.isin(["Willing to pay"]))]
+
+
+X = support_gw_option[["GW_BELIEF", "DEMOG_POLVIEWS"]]
+y = support_gw_option["CARBONTAX_SUPPORT"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 2010)
 
 # Define preprocessing
-categorical_features = ["DEMOG_POLVIEWS", "DEMOG_EDU"]
-encoder = OneHotEncoder(sparse_output=False)
+categorical_features = ["GW_BELIEF", "DEMOG_POLVIEWS"]
+encoder = OrdinalEncoder()
 
 preprocessor = ColumnTransformer(
     transformers=[("cat", encoder, categorical_features)],
@@ -578,26 +543,41 @@ preprocessor = ColumnTransformer(
 # Build pipeline
 clf = Pipeline([
     ("preprocessor", preprocessor),
-    ("tree", DecisionTreeClassifier(max_depth=5, random_state=50))
+    ("tree", DecisionTreeClassifier(max_depth=5, random_state=100))
 ])
 
 # Fit model
-clf.fit(X, y)
+clf = clf.fit(X_train, y_train)
 
 # Plot the decision tree
 plt.figure(figsize=(20, 10))
-plot_tree(clf.named_steps["tree"],  # Get the tree model inside the pipeline
-          feature_names=clf.named_steps["preprocessor"].get_feature_names_out(),
-          class_names=["No", "Yes"],
+plot_tree(clf["tree"],  # Get the tree model inside the pipeline
+          feature_names=clf["preprocessor"].get_feature_names_out(),
+          class_names=[str(c) for c in clf["tree"].classes_],
           filled=True,
           rounded=True,
           fontsize=6)
-plt.title("Decision Tree: Predicting Belief in Global Warming")
+plt.title("Decision Tree: Predicting the Amount an Individual is Willing to Spend if they are Willing to Spend")
 plt.tight_layout()
 plt.show()
 
+# Access the fitted encoder
+#encoder_fitted = clf["preprocessor"].named_transformers_["cat"]
+
+# Print categories in order
+for feature, cats in zip(categorical_features, encoder_fitted.categories_):
+    print(f"{feature}:")
+    for i, cat in enumerate(cats):
+        print(f"  {i}: {cat}")
 ```
 
+```{python}
+#clf.predict_proba(working_data_shrub2[["GW_BELIEF", "DEMOG_POLVIEWS","CARBONTAX_SUPPORT"]])
 
+from sklearn.metrics import ConfusionMatrixDisplay
+
+cm = ConfusionMatrixDisplay.from_estimator(clf, X_test, y_test)
+plt.show()
+```
 
 
