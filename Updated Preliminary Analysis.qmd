@@ -61,8 +61,8 @@ library(dplyr)
 library(reticulate)
 library(knitr)
 library(tidyr)
-#path_to_python <- "/Users/Eli/anaconda3/python.exe"
-#use_python(path_to_python)
+path_to_python <- "/Users/Eli/anaconda3/python.exe"
+use_python(path_to_python)
 ```
 
 ```{python py-install}
@@ -85,7 +85,7 @@ from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegress
 
 ```{r load data}
 #Loading the dataset
-load("36368-0001-Data.rda")
+load("data/36368-0001-Data.rda")
 econ_clim_data <- as.data.frame(da36368.0001)
 ```
 
@@ -461,7 +461,7 @@ plot_tree(clf["tree"],  # Get the tree model inside the pipeline
           class_names=[str(c) for c in clf["tree"].classes_],
           filled=True,
           rounded=True,
-          fontsize=6)
+          fontsize=12)
 plt.title("Decision Tree: Predicting Willingness to Spend to Prevent Climate Change")
 plt.tight_layout()
 plt.show()
@@ -521,7 +521,7 @@ plot_tree(clf["tree"],  # Get the tree model inside the pipeline
           class_names=[str(c) for c in clf["tree"].classes_],
           filled=True,
           rounded=True,
-          fontsize=6)
+          fontsize=12)
 plt.title("Decision Tree: Predicting the Amount an Individual is Willing to Spend if they are Willing to Spend")
 plt.tight_layout()
 plt.show()
