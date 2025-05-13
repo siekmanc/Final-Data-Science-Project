@@ -62,6 +62,7 @@ library(dplyr)
 library(reticulate)
 library(knitr)
 library(tidyr)
+# edit python path for personal use
 path_to_python <- "/Users/Eli/anaconda3/python.exe"
 use_python(path_to_python)
 ```
