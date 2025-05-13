@@ -1,6 +1,7 @@
-Eli Weise and Caroline Siekman
-Vassar College
-Math-244 Intermediate Data Science
+#Eli Weise and Caroline Siekman
+
+##Vassar College
+##Math-244 Intermediate Data Science
 
 The final complete report is editable in Final_Report/Final.qmd
 
