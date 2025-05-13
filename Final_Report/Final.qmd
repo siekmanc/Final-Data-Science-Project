@@ -2,10 +2,11 @@
 title: "Preliminary Analysis"
 author: "Caroline & Eli"
 date: "4/16/25"
-format: html
+format: pdf
 execute: 
   warning: false
   message: false
+  echo: false
 ---
 
 # Preliminary Analysis
@@ -381,9 +382,10 @@ This graph shows the percent of individuals that support the carbon tax by their
 
 ## Results
 
+
+```{r Converting data to python format}
 #Creating new smaller dataframe for decision tree in python
 #Converting data to python format
-```{r Converting data to python format}
 #| echo: false
 write.csv(working_dataset2, "working_dataset2.csv", row.names = FALSE)
 ```
@@ -457,6 +459,15 @@ plot_tree(clf["tree"],  # Get the tree model inside the pipeline
           rounded=True,
           fontsize=12)
 plt.title("Decision Tree: Predicting Willingness to Spend to Prevent Climate Change")
+plt.figtext(0.2,0.8,"does not believe in climate change",fontsize=12)
+plt.figtext(0.6,0.8,"believes in climate change",fontsize=12)
+plt.figtext(0.1,0.5,"conservative",fontsize=12)
+plt.figtext(0.2,0.2,"liberal",fontsize=12)
+plt.figtext(0.47,0.2,"moderate",fontsize=12)
+plt.figtext(0.55,0.5,"conservative",fontsize=12)
+plt.figtext(0.65,0.2,"liberal",fontsize=12)
+plt.figtext(0.88,0.2,"moderate",fontsize=12)
+
 plt.tight_layout()
 plt.show()
 
@@ -464,21 +475,19 @@ plt.show()
 encoder_fitted = clf["preprocessor"].named_transformers_["cat"]
 
 # Print categories in order
-for feature, cats in zip(categorical_features, encoder_fitted.categories_):
-    print(f"{feature}:")
-    for i, cat in enumerate(cats):
-        print(f"  {i}: {cat}")
+#for feature, cats in zip(categorical_features, encoder_fitted.categories_):
+#    print(f"{feature}:")
+#    for i, cat in enumerate(cats):
+#        print(f"  {i}: {cat}")
 ```
 ```{python roc_auc}
-clf.predict_proba(working_data_shrub2[["GW_BELIEF", "DEMOG_POLVIEWS","CARBONTAX_SUPPORT_BI"]])
+clf.predict_proba(working_data_shrub2[["GW_BELIEF", "DEMOG_POLVIEWS","CARBONTAX_SUPPORT_BI"]]);
 
 from sklearn.metrics import RocCurveDisplay
 
-RocCurveDisplay.from_estimator(clf, X_test, y_test)
+RocCurveDisplay.from_estimator(clf, X_test, y_test);
 plt.show()
 ```
-
-
 
 ```{python carbon-tree-support}
 
@@ -541,7 +550,7 @@ plt.savefig("confusion_matrix.pdf", bbox_inches='tight')
 
 ## Discussion
 ## Analysis of Results
-Our data supports our claim that more liberal minded individuals who believe in climate change are more likely to be willing to personally pay to attempt to limit the effects. Among those that are willing to pay, however, the group that was willing to pay the most on average were conservatives who did not believe in climate change. This is result is very surprising, however we believe that it may be due to a small sample size, as described in the next section. For our decision tree regarding if individuals are willing or not to pay extra taxes, we got an AUC score of 0.73. This is not particularly good and we could probably do better if we fit a forest rather than just one decision tree. Similarly, with our decision tree regarding how much people would be willing to put towards taxes for climate change, our confusion matrix shows that our fitting did an extremely poor job for the three different classes. This could also probably be remedied by fitting a forest rather than a single tree. Going forward, we will make sure to fit forests rather than trees, and even though trees are visually very good and representing the splits we wanted, we many test some other models aswell.
+Our data supports our claim that more liberal minded individuals who believe in climate change are more likely to be willing to personally pay to attempt to limit the effects. Among those that are willing to pay, however, the group that was willing to pay the most on average were conservatives who did not believe in climate change. This is result is very surprising, however we believe that it may be due to a small sample size, as described in the next section. For our decision tree regarding if individuals are willing or not to pay extra taxes, we got an AUC score of 0.73. This is not particularly good and so we attempted to fit a forest. Frustratingly, even though we attempted to fit a random forest, we got the same AUC score of 0.73, despite trying cross validation. Due to this result we decided to continue using the single decision tree. Similarly, with our decision tree regarding how much people would be willing to put towards taxes for climate change, our confusion matrix shows that our fitting did an extremely poor job for the three different classes. If we choose to expand upon our results going forward, we may attempt to use other models for our data that may be able to do a better job than decisions trees.
 
 
 ## Reliability and Validity
