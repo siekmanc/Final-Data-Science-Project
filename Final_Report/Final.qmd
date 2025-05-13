@@ -2,7 +2,7 @@
 title: "Preliminary Analysis"
 author: "Caroline & Eli"
 date: "4/16/25"
-format: pdf
+format: html
 execute: 
   warning: false
   message: false
@@ -528,6 +528,16 @@ plot_tree(clf["tree"],  # Get the tree model inside the pipeline
           rounded=True,
           fontsize=12)
 plt.title("Decision Tree: Predicting the Amount an Individual is Willing to Spend if they are Willing to Spend")
+plt.figtext(0.2,0.8,"conservative",fontsize=12)
+plt.figtext(0.6,0.8,"not conservative",fontsize=12)
+plt.figtext(0,0.5,"does not believe in climate change",fontsize=12)
+plt.figtext(0.25,0.5,"believes in climate change",fontsize=12)
+plt.figtext(0.404,0.5,"does not believe in climate change",fontsize=12)
+plt.figtext(0.76,0.5,"believes in climate change",fontsize=12)
+plt.figtext(0.3,0.2,"liberal",fontsize=12)
+plt.figtext(0.55,0.2,"moderate",fontsize=12)
+plt.figtext(0.65,0.2,"liberal",fontsize=12)
+plt.figtext(0.9,0.2,"moderate",fontsize=12)
 plt.tight_layout()
 plt.show()
 ```
@@ -550,7 +560,9 @@ plt.savefig("confusion_matrix.pdf", bbox_inches='tight')
 
 ## Discussion
 ## Analysis of Results
-Our data supports our claim that more liberal minded individuals who believe in climate change are more likely to be willing to personally pay to attempt to limit the effects. Among those that are willing to pay, however, the group that was willing to pay the most on average were conservatives who did not believe in climate change. This is result is very surprising, however we believe that it may be due to a small sample size, as described in the next section. For our decision tree regarding if individuals are willing or not to pay extra taxes, we got an AUC score of 0.73. This is not particularly good and so we attempted to fit a forest. Frustratingly, even though we attempted to fit a random forest, we got the same AUC score of 0.73, despite trying cross validation. Due to this result we decided to continue using the single decision tree. Similarly, with our decision tree regarding how much people would be willing to put towards taxes for climate change, our confusion matrix shows that our fitting did an extremely poor job for the three different classes. If we choose to expand upon our results going forward, we may attempt to use other models for our data that may be able to do a better job than decisions trees.
+Our data supports our claim that more liberal minded individuals who believe in climate change are more likely to be willing to personally pay to attempt to limit the effects. Among those that are willing to pay, however, the group that was willing to pay the most on average were conservatives who did not believe in climate change. This is result is very surprising, however we believe that it may be due to a small sample size, as described in the next section. For our decision tree regarding if individuals are willing or not to pay extra taxes, we got an AUC score of 0.73. This is not particularly good and so we attempted to fit a forest. Frustratingly, even though we attempted to fit a random forest, we got the same AUC score of 0.73, despite trying cross validation. Due to this result we decided to continue using the single decision tree. Similarly, with our decision tree regarding how much people would be willing to put towards taxes for climate change, our confusion matrix shows that our fitting did an extremely poor job for the three different classes.
+
+If we choose to expand upon our results going forward, we may attempt to use other models for our data that may be able to do a better job than decisions trees. In addition it would be beneficial for us to approach our questions in a different manner. For this iteration we asked our questions before seeing what data was available or not and so had to deal with a lot of missing data. If we were to see what parts of the data set were most complete before becoming curious, we could tailor our questions to have a greater amount of total observations to work with. 
 
 
 ## Reliability and Validity
