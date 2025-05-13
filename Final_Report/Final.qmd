@@ -1,5 +1,5 @@
 ---
-title: "Preliminary Analysis"
+title: "Final Report"
 author: "Caroline & Eli"
 date: "4/16/25"
 format: html
@@ -9,7 +9,7 @@ execute:
   echo: false
 ---
 
-# Preliminary Analysis
+# Final Report
 
 ## Introduction and Data
 
